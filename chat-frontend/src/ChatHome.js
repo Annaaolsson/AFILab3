@@ -13,8 +13,11 @@ const ChatHome = () => {
     useEffect(() => {
         if (connection) {
             connection.on("ReceiveMessage", (user, message) => {
-                setUserMessages(prevMessages => [...prevMessages, { user, message }]);
+                setUserMessages(prevMessages => {
+				const updateMessages = [...prevMessages, { user, message }];
+                return updateMessages.slice(-50);
             });
+		});
 
             connection.onclose(() => {
                 console.log("Connection closed");
@@ -23,7 +26,12 @@ const ChatHome = () => {
     }, [connection]);
 
     const joinChatRoom = async (userName, chatRoom) => {
-        setLoading(true);
+        if (!userName.trim() || !chatRoom.trim()) {
+			alert("Please enter both your name and a chat room.");
+			return;
+		}
+
+		setLoading(true);
         const connection = new HubConnectionBuilder()
             .withUrl("http://localhost:5136/chat")
             .configureLogging(LogLevel.Information)
@@ -36,9 +44,13 @@ const ChatHome = () => {
     };
 
     const sendMessage = async (message) => {
-        if (connection) {
-            await connection.invoke("SendMessage", chatRoom, userName, message);
-        }
+        const trimmedMessage = message.trim();
+
+		if (!connection || !trimmedMessage) {
+			return;
+		}
+		
+        await connection.invoke("SendMessage", chatRoom, userName, trimmedMessage);
     };
 
     return (
