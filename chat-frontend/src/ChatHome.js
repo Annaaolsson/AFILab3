@@ -56,7 +56,7 @@ const ChatHome = () => {
 								<p>Logged in as: {userName}</p>
 							</div>
 							
-							<ChatRoom usermessages={usermessages} currentUserName={userName} />
+							<ChatRoom usermessages={usermessages} currentUser={userName} />
                             <ChatBox sendMessage={sendMessage} />
                         </>
                     ) : (

@@ -23,7 +23,7 @@ const ChatRoom = ({ usermessages, currentUser }) => {
 						key={index}
 						className={`message ${isCurrentUser ? "own-message" : ""} ${isAdmin ? "admin-message" : ""}`}
 					>
-						<strong>{msg.user}: </strong>
+						<strong>{isCurrentUser ? "You" : msg.user}: </strong>
 						<span>{msg.message}</span>
 					</div>
 				);
