@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-const ChatRoom = ({ usermessages }) => {
+const ChatRoom = ({ usermessages, currentUser }) => {
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -14,11 +14,20 @@ const ChatRoom = ({ usermessages }) => {
 
     return (
         <div className="h-screen p-4 overflow-y-scroll bg-white rounded-lg shadow-lg">
-            {usermessages.map((msg, index) => (
-                <div key={index} className={`mb-2 p-2 rounded ${msg.isSystem ? 'bg-gray-200' : 'bg-blue-200'}`}>
-                    <strong>{msg.user}: </strong>{msg.message}
-                </div>
-            ))}
+            {usermessages.map((msg, index) => {
+				const isCurrentUser = msg.user === currentUser;
+				const isAdmin = msg.user.toLowerCase() === "admin";
+
+				return (
+					<div
+						key={index}
+						className={`message ${isCurrentUser ? "own-message" : ""} ${isAdmin ? "admin-message" : ""}`}
+					>
+						<strong>{msg.user}: </strong>
+						<span>{msg.message}</span>
+					</div>
+				);
+			})}
             <div ref={messagesEndRef} />
         </div>
     );
@@ -30,7 +39,8 @@ ChatRoom.propTypes = {
             user: PropTypes.string.isRequired,
             message: PropTypes.string.isRequired
         })
-    ).isRequired
+    ).isRequired,
+    currentUser: PropTypes.string.isRequired
 };
 
 export default ChatRoom;

@@ -51,7 +51,12 @@ const ChatHome = () => {
                 ) : (
                     connection ? (
                         <>
-                            <ChatRoom usermessages={usermessages} />
+                            <div className="chat-header">
+								<h2>Room: {chatRoom}</h2>
+								<p>Logged in as: {userName}</p>
+							</div>
+							
+							<ChatRoom usermessages={usermessages} currentUserName={userName} />
                             <ChatBox sendMessage={sendMessage} />
                         </>
                     ) : (

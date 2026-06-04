@@ -12,7 +12,7 @@ const ChatBox = ({ sendMessage }) => {
         }
     };
 
-    const handleKeyPress = (e) => {
+    const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSend();
@@ -27,10 +27,10 @@ const ChatBox = ({ sendMessage }) => {
                     rows="1"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    onKeyDown={handleKeyDown}
                     placeholder="Type a message..."
                 />
-                <button onClick={handleSend}>
+                <button onClick={handleSend} disabled={!message.trim()}>
                     <FiSend className="w-5 h-5 text-white" />
                 </button>
             </div>

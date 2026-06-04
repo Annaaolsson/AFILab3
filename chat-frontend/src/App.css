@@ -36,3 +36,41 @@
     transform: rotate(360deg);
   }
 }
+
+.chat-header {
+  background-color: #24292f;
+  color: white;
+  padding: 16px 24px;
+  text-align: left;
+}
+
+.chat-header h2 {
+  margin: 0;
+}
+
+.chat-header p {
+  margin: 4px 0 0;
+  color: #d0d7de;
+}
+
+.message {
+  margin: 8px 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background-color: white;
+  max-width: 70%;
+}
+
+.own-message {
+  margin-left: auto;
+  background-color: #dbeafe;
+}
+
+.admin-message {
+  margin-left: auto;
+  margin-right: auto;
+  background-color: transparent;
+  color: #57606a;
+  font-style: italic;
+  text-align: center;
+}
