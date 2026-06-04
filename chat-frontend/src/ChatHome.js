@@ -6,24 +6,48 @@ import ChatBox from './ChatBox';
 const ChatHome = () => {
     const [connection, setConnection] = useState(null);
     const [usermessages, setUserMessages] = useState([]);
+	const [announcements, setAnnouncements] = useState([]);
     const [userName, setUserName] = useState('');
     const [chatRoom, setChatRoom] = useState('');
     const [loading, setLoading] = useState(false);
+	const [role, setRole] = useState('Student');
 
-    useEffect(() => {
-        if (connection) {
-            connection.on("ReceiveMessage", (user, message) => {
-                setUserMessages(prevMessages => {
-				const updateMessages = [...prevMessages, { user, message }];
-                return updateMessages.slice(-50);
-            });
-		});
+	useEffect(() => {
+		if (connection) {
+			connection.on("ReceiveMessage", (user, message) => {
+				setUserMessages(prevMessages => {
+					const updatedMessages = [
+						...prevMessages,
+						{
+							user: user,
+							message: message,
+							isAnnouncement: false
+						}
+					];
 
-            connection.onclose(() => {
-                console.log("Connection closed");
-            });
-        }
-    }, [connection]);
+					return updatedMessages.slice(-50);
+				});
+			});
+
+			connection.on("ReceiveAnnouncement", (user, message) => {
+				setAnnouncements(prevAnnouncements => {
+					const updatedAnnouncements = [
+						...prevAnnouncements,
+						{
+							user: user,
+							message: message,
+						}
+					];
+
+					return updatedAnnouncements.slice(-10);
+				});
+			});
+
+			connection.onclose(() => {
+				console.log("Connection closed");
+			});
+		}
+	}, [connection]);
 
     const joinChatRoom = async (userName, chatRoom) => {
         if (!userName.trim() || !chatRoom.trim()) {
@@ -38,7 +62,7 @@ const ChatHome = () => {
             .build();
 
         await connection.start();
-        await connection.invoke("JoinChatRoom", userName, chatRoom);
+        await connection.invoke("JoinChatRoom", userName, chatRoom, role);
         setConnection(connection);
         setLoading(false);
     };
@@ -52,6 +76,16 @@ const ChatHome = () => {
 		
         await connection.invoke("SendMessage", chatRoom, userName, trimmedMessage);
     };
+
+	const sendAnnouncement = async (announcement) => {
+		const trimmedAnnouncement = announcement.trim();
+
+		if (!connection || !trimmedAnnouncement) {
+			return;
+		}
+
+		await connection.invoke("SendAnnouncement", chatRoom, trimmedAnnouncement);
+	};
 
     return (
         <div className="flex flex-col h-screen bg-gray-900">
@@ -67,9 +101,29 @@ const ChatHome = () => {
 								<h2>Room: {chatRoom}</h2>
 								<p>Logged in as: {userName}</p>
 							</div>
-							
+
+							<div className="announcements-section">
+								<h3>Announcements</h3>
+
+								{announcements.length === 0 ? (
+									<p className="no-announcements">No announcements yet.</p>
+								) : (
+									announcements.map((announcement, index) => (
+										<div key={index} className="announcement-item">
+											<strong>{announcement.user}: </strong>
+											<span>{announcement.message}</span>
+										</div>
+									))
+								)}
+							</div>
+
+							<h3>Chat</h3>
 							<ChatRoom usermessages={usermessages} currentUser={userName} />
-                            <ChatBox sendMessage={sendMessage} />
+                            <ChatBox 
+								sendMessage={sendMessage}
+								sendAnnouncement={sendAnnouncement}
+								role={role} 
+							/>
                         </>
                     ) : (
                         <div className="flex items-center justify-center min-h-screen bg-gray-900">
@@ -86,6 +140,11 @@ const ChatHome = () => {
                                     value={chatRoom}
                                     onChange={(e) => setChatRoom(e.target.value)}
                                 />
+								<label>Role</label>
+								<select value={role} onChange={(e) => setRole(e.target.value)}>
+									<option value="Student">Student</option>
+									<option value="Teacher">Teacher</option>
+								</select>
                                 <button onClick={() => joinChatRoom(userName, chatRoom)}>Join Chat Room</button>
                             </div>
                         </div>

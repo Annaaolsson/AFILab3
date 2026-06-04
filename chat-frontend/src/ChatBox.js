@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { FiSend } from 'react-icons/fi';
 
-const ChatBox = ({ sendMessage }) => {
+const ChatBox = ({ sendMessage, sendAnnouncement, role }) => {
     const [message, setMessage] = useState('');
+	const [announcement, setAnnouncement] = useState("");
 
     const handleSend = () => {
         if (message.trim()) {
@@ -11,6 +12,17 @@ const ChatBox = ({ sendMessage }) => {
             setMessage('');
         }
     };
+
+	const handleAnnouncementSend = () => {
+		const trimmedAnnouncement = announcement.trim();
+
+		if (!trimmedAnnouncement) {
+			return;
+		}
+
+		sendAnnouncement(trimmedAnnouncement);
+		setAnnouncement("");
+	};
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -34,6 +46,24 @@ const ChatBox = ({ sendMessage }) => {
                     <FiSend className="w-5 h-5 text-white" />
                 </button>
             </div>
+
+			{role === "Teacher" && (
+				<div className="announcement-box">
+					<input
+						type="text"
+						value={announcement}
+						onChange={(e) => setAnnouncement(e.target.value)}
+						placeholder="Write an announcement..."
+					/>
+
+					<button
+						onClick={handleAnnouncementSend}
+						disabled={!announcement.trim()}
+					>
+						Send announcement
+					</button>
+				</div>
+			)}
         </div>
     );
 };

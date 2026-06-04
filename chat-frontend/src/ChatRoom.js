@@ -17,11 +17,12 @@ const ChatRoom = ({ usermessages, currentUser }) => {
             {usermessages.map((msg, index) => {
 				const isCurrentUser = msg.user === currentUser;
 				const isAdmin = msg.user.toLowerCase() === "admin";
+				const isAnnouncement = msg.isAnnouncement;
 
 				return (
 					<div
 						key={index}
-						className={`message ${isCurrentUser ? "own-message" : ""} ${isAdmin ? "admin-message" : ""}`}
+						className={`message ${isCurrentUser ? "own-message" : ""} ${isAdmin ? "admin-message" : ""} ${isAnnouncement ? "announcement-message" : ""}`}
 					>
 						<strong>{isCurrentUser ? "You" : msg.user}: </strong>
 						<span>{msg.message}</span>

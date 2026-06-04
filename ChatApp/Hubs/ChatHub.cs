@@ -15,18 +15,22 @@ namespace ChatApp.Hubs
             _sharedDb = sharedDb;
         }
 
-        public async Task JoinChatRoom(string userName, string chatRoom)
+        public async Task JoinChatRoom(string userName, string chatRoom, string role)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, chatRoom);
             
 			_sharedDb.Connection[Context.ConnectionId] = new UserConnection 
 			{ 
 				UserName = userName, 
-				ChatRoom = chatRoom 
+				ChatRoom = chatRoom,
+				Role = role
 			};
 
             await Clients.Group(chatRoom)
-				.SendAsync("ReceiveMessage", "admin", $"{userName} has joined the chat room {chatRoom}");
+				.SendAsync(
+					"ReceiveMessage", 
+					"admin", 
+					$"{userName} joined as {role}");
         }
 
         public async Task SendMessage(string chatRoom, string userName, string message)
@@ -34,6 +38,31 @@ namespace ChatApp.Hubs
             await Clients.Group(chatRoom)
 				.SendAsync("ReceiveMessage", userName, message);
         }
+
+		public async Task SendAnnouncement(string chatRoom, string announcement)
+		{
+			if (!_sharedDb.Connection.TryGetValue(Context.ConnectionId, out UserConnection? userConnection))
+			{
+				return;
+			}
+
+			if (userConnection.Role != "Teacher")
+			{
+				await Clients.Caller.SendAsync(
+					"ReceiveMessage",
+					"admin",
+					"Only teachers can send announcements."
+				);
+
+				return;
+			}
+
+			await Clients.Group(chatRoom).SendAsync(
+				"ReceiveAnnouncement",
+				userConnection.UserName,
+				announcement
+			);
+		}
 
 		public override async Task OnDisconnectedAsync(Exception? exception)
 		{
