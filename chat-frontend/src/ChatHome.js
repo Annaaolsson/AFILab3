@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import ChatRoom from './ChatRoom';
 import ChatBox from './ChatBox';
@@ -11,43 +11,7 @@ const ChatHome = () => {
     const [chatRoom, setChatRoom] = useState('');
     const [loading, setLoading] = useState(false);
 	const [role, setRole] = useState('Student');
-
-	useEffect(() => {
-		if (connection) {
-			connection.on("ReceiveMessage", (user, message) => {
-				setUserMessages(prevMessages => {
-					const updatedMessages = [
-						...prevMessages,
-						{
-							user: user,
-							message: message,
-							isAnnouncement: false
-						}
-					];
-
-					return updatedMessages.slice(-50);
-				});
-			});
-
-			connection.on("ReceiveAnnouncement", (user, message) => {
-				setAnnouncements(prevAnnouncements => {
-					const updatedAnnouncements = [
-						...prevAnnouncements,
-						{
-							user: user,
-							message: message,
-						}
-					];
-
-					return updatedAnnouncements.slice(-10);
-				});
-			});
-
-			connection.onclose(() => {
-				console.log("Connection closed");
-			});
-		}
-	}, [connection]);
+	const [onlineUsers, setOnlineUsers] = useState([]);
 
     const joinChatRoom = async (userName, chatRoom) => {
         if (!userName.trim() || !chatRoom.trim()) {
@@ -60,6 +24,43 @@ const ChatHome = () => {
             .withUrl("http://localhost:5136/chat")
             .configureLogging(LogLevel.Information)
             .build();
+		
+		connection.on("ReceiveMessage", (user, message) => {
+			setUserMessages(prevMessages => {
+				const updatedMessages = [
+					...prevMessages,
+					{
+						user: user,
+						message: message,
+						isAnnouncement: false
+					}
+				];
+
+				return updatedMessages.slice(-50);
+			});
+		});
+
+		connection.on("ReceiveAnnouncement", (user, message) => {
+			setAnnouncements(prevAnnouncements => {
+				const updatedAnnouncements = [
+					...prevAnnouncements,
+					{
+						user: user,
+						message: message
+					}
+				];
+
+				return updatedAnnouncements.slice(-10);
+			});
+		});
+
+		connection.on("ReceiveOnlineUsers", (users) => {
+			setOnlineUsers(users);
+		});
+
+		connection.onclose(() => {
+			console.log("Connection closed");
+		});
 
         await connection.start();
         await connection.invoke("JoinChatRoom", userName, chatRoom, role);
@@ -99,7 +100,23 @@ const ChatHome = () => {
                         <>
                             <div className="chat-header">
 								<h2>Room: {chatRoom}</h2>
-								<p>Logged in as: {userName}, {role}</p>
+								<p>Logged in as: {userName} ({role})</p>
+							</div>
+
+							<div className="online-users-section">
+								<h3>Online users</h3>
+
+								{onlineUsers.length === 0 ? (
+									<p>No users online.</p>
+								) : (
+									<ul>
+										{onlineUsers.map((user, index) => (
+											<li key={index}>
+												{user.userName} ({user.role}) - {user.chatRoom}
+											</li>
+										))}
+									</ul>
+								)}
 							</div>
 
 							<div className="announcements-section">

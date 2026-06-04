@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using ChatApp.DataService;
 using ChatApp.Models;
+using System.Linq;
 
 namespace ChatApp.Hubs
 {
@@ -26,11 +27,13 @@ namespace ChatApp.Hubs
 				Role = role
 			};
 
-            await Clients.Group(chatRoom)
-				.SendAsync(
-					"ReceiveMessage", 
-					"admin", 
-					$"{userName} joined as {role}");
+            await Clients.Group(chatRoom).SendAsync(
+				"ReceiveMessage", 
+				"admin", 
+				$"{userName} joined as {role}"
+			);
+			
+			await SendOnlineUsers();
         }
 
         public async Task SendMessage(string chatRoom, string userName, string message)
@@ -70,9 +73,25 @@ namespace ChatApp.Hubs
 			{
 				await Clients.Group(userConnection.ChatRoom)
 					.SendAsync("ReceiveMessage", "admin", $"{userConnection.UserName} has left the chat room {userConnection.ChatRoom}");
+
+				await SendOnlineUsers();
 			}
 
 			await base.OnDisconnectedAsync(exception);
+		}
+
+		private async Task SendOnlineUsers()
+		{
+			var onlineUsers = _sharedDb.Connection.Values
+				.Select(connection => new
+				{
+					userName = connection.UserName,
+					role = connection.Role,
+					chatRoom = connection.ChatRoom
+				})
+				.ToList();
+
+			await Clients.All.SendAsync("ReceiveOnlineUsers", onlineUsers);
 		}
     }
 }
