@@ -99,7 +99,7 @@ const ChatHome = () => {
                         <>
                             <div className="chat-header">
 								<h2>Room: {chatRoom}</h2>
-								<p>Logged in as: {userName}</p>
+								<p>Logged in as: {userName}, {role}</p>
 							</div>
 
 							<div className="announcements-section">
