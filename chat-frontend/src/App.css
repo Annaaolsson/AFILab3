@@ -145,3 +145,10 @@ select {
 .online-users-section li {
   margin-bottom: 4px;
 }
+
+.typing-indicator {
+  min-height: 24px;
+  padding: 0 16px;
+  color: #57606a;
+  font-style: italic;
+}

@@ -2,16 +2,38 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { FiSend } from 'react-icons/fi';
 
-const ChatBox = ({ sendMessage, sendAnnouncement, role }) => {
+const ChatBox = ({ sendMessage, sendAnnouncement, sendTypingStatus, role }) => {
     const [message, setMessage] = useState('');
 	const [announcement, setAnnouncement] = useState("");
+	const [typingTimeout, setTypingTimeout] = useState(null);
 
-    const handleSend = () => {
-        if (message.trim()) {
-            sendMessage(message);
-            setMessage('');
-        }
-    };
+	const handleMessageChange = (e) => {
+		setMessage(e.target.value);
+
+		sendTypingStatus(true);
+
+		if (typingTimeout) {
+			clearTimeout(typingTimeout);
+		}
+
+		const timeout = setTimeout(() => {
+			sendTypingStatus(false);
+		}, 1500);
+
+		setTypingTimeout(timeout);
+	};
+
+	const handleSend = () => {
+		const trimmedMessage = message.trim();
+
+		if (!trimmedMessage) {
+			return;
+		}
+
+		sendMessage(trimmedMessage);
+		sendTypingStatus(false);
+		setMessage('');
+	};
 
 	const handleAnnouncementSend = () => {
 		const trimmedAnnouncement = announcement.trim();
@@ -38,7 +60,7 @@ const ChatBox = ({ sendMessage, sendAnnouncement, role }) => {
                     className="w-full p-2 bg-white rounded-2xl resize-none"
                     rows="1"
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={handleMessageChange}
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message..."
                 />

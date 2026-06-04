@@ -67,6 +67,15 @@ namespace ChatApp.Hubs
 			);
 		}
 
+		public async Task SendTypingStatus(string chatRoom, string userName, bool isTyping)
+		{
+			await Clients.GroupExcept(chatRoom, Context.ConnectionId).SendAsync(
+				"ReceiveTypingStatus",
+				userName,
+				isTyping
+			);
+		}
+
 		public override async Task OnDisconnectedAsync(Exception? exception)
 		{
 			if (_sharedDb.Connection.TryRemove(Context.ConnectionId, out UserConnection? userConnection))

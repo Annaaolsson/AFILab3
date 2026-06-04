@@ -7,11 +7,14 @@ const ChatHome = () => {
     const [connection, setConnection] = useState(null);
     const [usermessages, setUserMessages] = useState([]);
 	const [announcements, setAnnouncements] = useState([]);
+
     const [userName, setUserName] = useState('');
     const [chatRoom, setChatRoom] = useState('');
     const [loading, setLoading] = useState(false);
+
 	const [role, setRole] = useState('Student');
 	const [onlineUsers, setOnlineUsers] = useState([]);
+	const [typingUsers, setTypingUsers] = useState([]);
 
     const joinChatRoom = async (userName, chatRoom) => {
         if (!userName.trim() || !chatRoom.trim()) {
@@ -58,6 +61,20 @@ const ChatHome = () => {
 			setOnlineUsers(users);
 		});
 
+		connection.on("ReceiveTypingStatus", (userName, isTyping) => {
+			setTypingUsers(prevTypingUsers => {
+				if (isTyping) {
+					if (prevTypingUsers.includes(userName)) {
+						return prevTypingUsers;
+					}
+
+					return [...prevTypingUsers, userName];
+				}
+
+				return prevTypingUsers.filter(user => user !== userName);
+			});
+		});
+
 		connection.onclose(() => {
 			console.log("Connection closed");
 		});
@@ -86,6 +103,14 @@ const ChatHome = () => {
 		}
 
 		await connection.invoke("SendAnnouncement", chatRoom, trimmedAnnouncement);
+	};
+
+	const sendTypingStatus = async (isTyping) => {
+		if (!connection) {
+			return;
+		}
+
+		await connection.invoke("SendTypingStatus", chatRoom, userName, isTyping);
 	};
 
     return (
@@ -136,9 +161,19 @@ const ChatHome = () => {
 
 							<h3>Chat</h3>
 							<ChatRoom usermessages={usermessages} currentUser={userName} />
+
+							<div className="typing-indicator">
+								{typingUsers.length > 0 && (
+									<p>
+										{typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+									</p>
+								)}
+							</div>
+
                             <ChatBox 
 								sendMessage={sendMessage}
 								sendAnnouncement={sendAnnouncement}
+								sendTypingStatus={sendTypingStatus}
 								role={role} 
 							/>
                         </>
