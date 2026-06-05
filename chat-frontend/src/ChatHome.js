@@ -102,7 +102,7 @@ const ChatHome = () => {
 			return;
 		}
 
-		await connection.invoke("SendAnnouncement", chatRoom, trimmedAnnouncement);
+		await connection.invoke("SendAnnouncement", trimmedAnnouncement);
 	};
 
 	const sendTypingStatus = async (isTyping) => {

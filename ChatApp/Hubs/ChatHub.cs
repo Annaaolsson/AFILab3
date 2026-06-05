@@ -30,7 +30,7 @@ namespace ChatApp.Hubs
             await Clients.Group(chatRoom).SendAsync(
 				"ReceiveMessage", 
 				"admin", 
-				$"{userName} joined as {role}"
+				$"{userName}({role}) joined the chat!"
 			);
 			
 			await SendOnlineUsers();
@@ -42,7 +42,7 @@ namespace ChatApp.Hubs
 				.SendAsync("ReceiveMessage", userName, message);
         }
 
-		public async Task SendAnnouncement(string chatRoom, string announcement)
+		public async Task SendAnnouncement(string announcement)
 		{
 			if (!_sharedDb.Connection.TryGetValue(Context.ConnectionId, out UserConnection? userConnection))
 			{
@@ -60,7 +60,7 @@ namespace ChatApp.Hubs
 				return;
 			}
 
-			await Clients.Group(chatRoom).SendAsync(
+			await Clients.All.SendAsync(
 				"ReceiveAnnouncement",
 				userConnection.UserName,
 				announcement
@@ -81,7 +81,7 @@ namespace ChatApp.Hubs
 			if (_sharedDb.Connection.TryRemove(Context.ConnectionId, out UserConnection? userConnection))
 			{
 				await Clients.Group(userConnection.ChatRoom)
-					.SendAsync("ReceiveMessage", "admin", $"{userConnection.UserName} has left the chat room {userConnection.ChatRoom}");
+					.SendAsync("ReceiveMessage", "admin", $"{userConnection.UserName} has left the chat room.");
 
 				await SendOnlineUsers();
 			}
